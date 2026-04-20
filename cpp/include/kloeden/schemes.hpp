@@ -38,4 +38,24 @@ void gbm_milstein_scalar(
     const GBM& p,
     double* terminal);
 
+// Taylor 1.5 on GBM, scalar. Strong order 1.5 (Kloeden-Platen 1992).
+//
+// For GBM specifically, the general scheme simplifies because a''=b''=0
+// and the dZ-dependent cross-terms cancel. The kernel needs only dW:
+//
+//   X_{n+1} = X_n + mu*X_n*dt + sigma*X_n*dW
+//           + (sigma^2/2)*X_n*(dW^2 - dt)                   [Milstein correction]
+//           + (mu^2/2)*X_n*dt^2                              [pure dt^2]
+//           + mu*sigma*X_n*dW*dt                             [mixed cancellation]
+//           + (sigma^3/6)*X_n*dW^3                           [cubic in dW]
+//           - (sigma^3/2)*X_n*dt*dW                          [triple-integral approx]
+void gbm_taylor15_scalar(
+    const double* dw,
+    double x0,
+    double dt,
+    std::size_t n_paths,
+    std::size_t n_steps,
+    const GBM& p,
+    double* terminal);
+
 } // namespace kloeden
