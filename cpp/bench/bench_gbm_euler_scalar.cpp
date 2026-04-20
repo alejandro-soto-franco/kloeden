@@ -7,6 +7,8 @@
 
 #include <benchmark/benchmark.h>
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -63,6 +65,8 @@ BENCHMARK(BM_gbm_euler_scalar)->Unit(benchmark::kMillisecond)->MinWarmUpTime(0.1
 
 void emit_csv() {
     const auto& m = g_ctx->fx->meta();
+
+    // Correctness pass: compute mc_mean and mc_stderr.
     kloeden::gbm_euler_scalar(
         g_ctx->fx->dw().data(), m.x0, m.dt, m.n_paths, m.n_steps, g_ctx->p, g_ctx->terminal.data());
     double sum = 0.0;
@@ -73,14 +77,30 @@ void emit_csv() {
     double var = sq / static_cast<double>(m.n_paths - 1);
     double stderr_mean = std::sqrt(var / static_cast<double>(m.n_paths));
 
+    // Throughput pass: 20 timed reps, take the median.
+    constexpr int reps = 20;
+    std::vector<double> ns_per_run(reps);
+    for (int r = 0; r < reps; ++r) {
+        auto t0 = std::chrono::steady_clock::now();
+        kloeden::gbm_euler_scalar(
+            g_ctx->fx->dw().data(), m.x0, m.dt, m.n_paths, m.n_steps, g_ctx->p, g_ctx->terminal.data());
+        auto t1 = std::chrono::steady_clock::now();
+        ns_per_run[r] = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+    }
+    std::sort(ns_per_run.begin(), ns_per_run.end());
+    double median_ns = ns_per_run[reps / 2];
+    double path_steps = static_cast<double>(m.n_paths) * static_cast<double>(m.n_steps);
+    double ns_per_path_step = median_ns / path_steps;
+    double path_steps_per_s = path_steps / (median_ns * 1e-9);
+
     fs::create_directories(results_dir());
     auto out = results_dir() / (std::string(KLOEDEN_IMPL_NAME) + "_euler_gbm_scalar.csv");
     std::ofstream f(out, std::ios::trunc);
     f << "impl,width,scheme,process,payoff,n_paths,n_steps,ns_per_path_step,paths_per_s,mc_mean,mc_stderr\n";
-    // ns_per_path_step and paths_per_s get filled by collate.py from bench JSON;
-    // for Task 11 we write placeholders of -1 and rely on the bench JSON output.
+    // paths_per_s is actually path-steps/s (matches Google Benchmark's items_per_second semantics).
     f << KLOEDEN_IMPL_NAME << ",scalar,euler,gbm,none,"
-      << m.n_paths << "," << m.n_steps << ",-1,-1,"
+      << m.n_paths << "," << m.n_steps << ","
+      << ns_per_path_step << "," << path_steps_per_s << ","
       << mean << "," << stderr_mean << "\n";
 }
 

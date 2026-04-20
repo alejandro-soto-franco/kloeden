@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Merge results/*.csv rows into docs/results.md Table A.
+"""Merge results/*.csv rows into docs/results.md.
 
-Reads every CSV in results/ (ignoring README.md), dedupes by
-(impl, width, scheme, process, payoff), and emits a Markdown table
-keyed by scheme with columns per impl.
+Emits two tables:
+- Table A (throughput): path-steps/s per impl, scaled to M.
+- Correctness block: mean and stderr per impl, used by verify.py's 4-sigma check.
 """
 from __future__ import annotations
 
@@ -15,6 +15,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 DOCS = ROOT / "docs"
+
+
+def fmt_throughput(paths_per_s: float) -> str:
+    # Input is path-steps/s. Scale to M (10^6) for readability.
+    return f"{paths_per_s / 1e6:.1f} M path-steps/s"
+
+
+def fmt_correctness(mean: float, stderr: float) -> str:
+    return f"mean={mean:.4f} ±{stderr:.4f}"
 
 
 def main() -> int:
@@ -29,7 +38,6 @@ def main() -> int:
         print("collate: no CSV rows found in results/", file=sys.stderr)
         return 1
 
-    # Group by (scheme, process, width, payoff); column = impl.
     by_row: dict[tuple[str, str, str, str], dict[str, dict[str, str]]] = defaultdict(dict)
     impls: set[str] = set()
     for r in rows:
@@ -46,20 +54,40 @@ def main() -> int:
     lines.append("")
     lines.append("## Table A (partial): scalar throughput on GBM")
     lines.append("")
+    lines.append("Single thread, pinned core, 20-rep median. Larger is better.")
+    lines.append("")
     header = "| scheme | process | width | payoff | " + " | ".join(impl_order) + " |"
     sep = "|" + "---|" * (4 + len(impl_order))
     lines.append(header)
     lines.append(sep)
     for key in sorted(by_row.keys()):
         scheme, process, width, payoff = key
-        row_cells = [scheme, process, width, payoff]
+        cells = [scheme, process, width, payoff]
         for im in impl_order:
             r = by_row[key].get(im)
             if r is None:
-                row_cells.append("not run")
+                cells.append("not run")
             else:
-                row_cells.append(f"mean={float(r['mc_mean']):.4f} ±{float(r['mc_stderr']):.4f}")
-        lines.append("| " + " | ".join(row_cells) + " |")
+                cells.append(fmt_throughput(float(r["paths_per_s"])))
+        lines.append("| " + " | ".join(cells) + " |")
+    lines.append("")
+
+    lines.append("## Correctness block")
+    lines.append("")
+    lines.append("Sample mean and stderr of the terminal value. All impls run on the same Brownian-increment fixture so terminal means must agree within 4 stderrs (enforced by `scripts/verify.py`).")
+    lines.append("")
+    lines.append(header)
+    lines.append(sep)
+    for key in sorted(by_row.keys()):
+        scheme, process, width, payoff = key
+        cells = [scheme, process, width, payoff]
+        for im in impl_order:
+            r = by_row[key].get(im)
+            if r is None:
+                cells.append("not run")
+            else:
+                cells.append(fmt_correctness(float(r["mc_mean"]), float(r["mc_stderr"])))
+        lines.append("| " + " | ".join(cells) + " |")
     lines.append("")
 
     DOCS.mkdir(exist_ok=True)
