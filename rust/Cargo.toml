@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = ["kloeden-buffer-gen", "kloeden-bench"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/alejandro-soto-franco/kloeden"
+
+[workspace.dependencies]
+rand = "0.9"
+rand_distr = "0.5"
+rand_chacha = "0.9"
+sha2 = "0.10"
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
+criterion = { version = "0.5", features = ["html_reports"] }
