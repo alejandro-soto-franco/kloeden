@@ -8,7 +8,9 @@ Single thread, pinned core, 20-rep median. Larger is better.
 
 | scheme | process | width | payoff | cpp-fast | cpp-strict | pathwise |
 |---|---|---|---|---|---|---|
-| euler | gbm | scalar | none | 12042.1 M path-steps/s | 392.0 M path-steps/s | 444.3 M path-steps/s |
+| euler | gbm | scalar | none | 9916.2 M path-steps/s | 386.8 M path-steps/s | 441.1 M path-steps/s |
+| milstein | gbm | scalar | none | 8636.9 M path-steps/s | 301.3 M path-steps/s | 313.7 M path-steps/s |
+| taylor15 | gbm | scalar | none | 499.4 M path-steps/s | 159.3 M path-steps/s | 182.5 M path-steps/s |
 
 ## Correctness block
 
@@ -17,3 +19,5 @@ Sample mean and stderr of the terminal value. All impls run on the same Brownian
 | scheme | process | width | payoff | cpp-fast | cpp-strict | pathwise |
 |---|---|---|---|---|---|---|
 | euler | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | mean=105.3596 ±0.2136 |
+| milstein | gbm | scalar | none | mean=105.3600 ±0.2135 | mean=105.3600 ±0.2135 | mean=105.3595 ±0.2135 |
+| taylor15 | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 |
