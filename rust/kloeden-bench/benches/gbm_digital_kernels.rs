@@ -1,13 +1,15 @@
-//! Digital-delta correctness: pathwise naive (returns 0)
-//! and hand-rolled Bismut-Elworthy-Li constant-flow weight in Rust.
+//! Digital-delta correctness, three rows:
+//! - `pathwise × digital_naive`  : naive pathwise-diff, returns 0 per path (Dirac f')
+//! - `rust-hand-rolled × digital_bel`  : hand-coded constant-flow BEL weight in Rust
+//! - `elworthy × digital_bel`  : elworthy-rt 0.1.3's `bel_delta_constant_flow_from_paths`
 //!
-//! The "elworthy symbolic BEL" column is deferred: elworthy-rt 0.1.1 on
-//! crates.io exposes neither an indicator payoff in the Expr DSL nor the
-//! `from_paths::bel_delta_constant_flow_from_paths` helper (both arrive
-//! in a later release). Once elworthy 0.1.2+ ships with `from_paths`,
-//! this file gets an `elworthy_digital_bel_from_paths` branch.
+//! All three read the same shared Brownian buffer. The two BEL rows integrate
+//! identical paths so their mean + stderr match bit-for-bit, demonstrating that
+//! the off-the-shelf `elworthy` estimator and a hand-rolled implementation
+//! compute the same arithmetic on digital-delta GBM.
 
 use criterion::{criterion_group, criterion_main, Criterion};
+use elworthy_rt::from_paths::bel_delta_constant_flow_from_paths;
 use kloeden_bench::{default_fixtures_dir, load};
 use std::{fs, io::Write, path::PathBuf};
 
@@ -46,7 +48,8 @@ fn bench(_c: &mut Criterion) {
     let horizon = m.t;
     let bel_scale = 1.0 / (horizon * sigma * m.x0);
 
-    // Single pass: simulate, accumulate both naive (= 0 per path) and BEL samples.
+    // Single pass: simulate paths, collect terminals and W_T, accumulate both
+    // naive (= 0 per path) and hand-rolled BEL samples.
     let mut naive_sum = 0.0_f64;
     let mut naive_sum_sq = 0.0_f64;
     let mut bel_sum = 0.0_f64;
@@ -55,6 +58,8 @@ fn bench(_c: &mut Criterion) {
     let dw = fx.dw();
     let n_paths = m.n_paths as usize;
     let n_steps = m.n_steps as usize;
+    let mut terminal = Vec::with_capacity(n_paths);
+    let mut w_total_vec = Vec::with_capacity(n_paths);
     for i in 0..n_paths {
         let mut x = m.x0;
         let mut w_total = 0.0_f64;
@@ -74,6 +79,9 @@ fn bench(_c: &mut Criterion) {
         let bel_sample = f * w_total * bel_scale;
         bel_sum += bel_sample;
         bel_sum_sq += bel_sample * bel_sample;
+
+        terminal.push(x);
+        w_total_vec.push(w_total);
     }
 
     let n = n_paths as f64;
@@ -87,8 +95,21 @@ fn bench(_c: &mut Criterion) {
     let bel_stderr = (bel_var.max(0.0) / n).sqrt();
     write_csv("rust-hand-rolled", "digital_bel", m.n_paths, m.n_steps, bel_mean, bel_stderr);
 
+    // elworthy-rt 0.1.3 `bel_delta_constant_flow_from_paths`: off-the-shelf
+    // BEL estimator for externally-generated paths. `sigma_at_x0` for GBM
+    // is sigma * S_0. Pass a hard digital closure.
+    let pd = bel_delta_constant_flow_from_paths(
+        &terminal,
+        &w_total_vec,
+        |x: f64| if x > strike { 1.0 } else { 0.0 },
+        m.t,
+        sigma * m.x0,
+    );
+    write_csv("elworthy", "digital_bel", m.n_paths, m.n_steps, pd.delta.mean, pd.delta.stderr);
+
     eprintln!("pathwise digital_naive:         mean={} stderr={}", naive_mean, naive_stderr);
     eprintln!("rust-hand-rolled digital_bel:   mean={} stderr={}", bel_mean, bel_stderr);
+    eprintln!("elworthy digital_bel:           mean={} stderr={}", pd.delta.mean, pd.delta.stderr);
 }
 
 criterion_group!(benches, bench);

@@ -8,9 +8,9 @@ Single thread, pinned core, 20-rep median. Larger is better.
 
 | scheme | process | width | payoff | cpp-fast | cpp-strict | elworthy | pathwise |
 |---|---|---|---|---|---|---|---|
-| euler | gbm | scalar | none | 12898.0 M path-steps/s | 385.5 M path-steps/s | 140.7 M path-steps/s | 448.0 M path-steps/s |
-| milstein | gbm | scalar | none | 8403.7 M path-steps/s | 303.9 M path-steps/s | 112.7 M path-steps/s | 276.9 M path-steps/s |
-| taylor15 | gbm | scalar | none | 488.7 M path-steps/s | 156.6 M path-steps/s | not run | 176.8 M path-steps/s |
+| euler | gbm | scalar | none | 12898.0 M path-steps/s | 385.5 M path-steps/s | 138.9 M path-steps/s | 431.0 M path-steps/s |
+| milstein | gbm | scalar | none | 8403.7 M path-steps/s | 303.9 M path-steps/s | 117.4 M path-steps/s | 276.0 M path-steps/s |
+| taylor15 | gbm | scalar | none | 488.7 M path-steps/s | 156.6 M path-steps/s | not run | 172.2 M path-steps/s |
 
 ### Correctness block (Table A)
 
@@ -24,11 +24,12 @@ Sample mean and stderr of the terminal value. All impls run on the same Brownian
 
 ## Table C: digital-delta correctness (GBM, K = S_0, analytic Δ = 0.019724)
 
-Naive pathwise-diff returns 0 per path (Dirac in `f'`); BEL constant-flow weight delivers unbiased estimates within 4σ of analytic. Elworthy's symbolic-BEL column is deferred pending a crates.io release that exposes `from_paths::bel_delta_constant_flow_from_paths`.
+Naive pathwise-diff returns 0 per path (Dirac in `f'`); BEL constant-flow weight delivers unbiased estimates within 4σ of analytic. The `elworthy` row uses `elworthy_rt::from_paths::bel_delta_constant_flow_from_paths` — an off-the-shelf estimator that produces bitwise-identical output to the hand-rolled row because both compute the same arithmetic on the same paths.
 
 | payoff | impl | Δ estimate | bias vs analytic |
 |---|---|---|---|
 | digital_bel | cpp-strict | Δ=0.020095 ±0.000296 | +0.000371 |
+| digital_bel | elworthy | Δ=0.020095 ±0.000296 | +0.000371 |
 | digital_bel | rust-hand-rolled | Δ=0.020095 ±0.000296 | +0.000371 |
 | digital_naive | cpp-strict | Δ=0.000000 ±0.000000 | -0.019724 |
 | digital_naive | pathwise | Δ=0.000000 ±0.000000 | -0.019724 |

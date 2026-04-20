@@ -109,7 +109,7 @@ def main() -> int:
     if table_c:
         lines.append(f"## Table C: digital-delta correctness (GBM, K = S_0, analytic Δ = {ANALYTIC_DELTA:.6f})")
         lines.append("")
-        lines.append("Naive pathwise-diff returns 0 per path (Dirac in `f'`); BEL constant-flow weight delivers unbiased estimates within 4σ of analytic. Elworthy's symbolic-BEL column is deferred pending a crates.io release that exposes `from_paths::bel_delta_constant_flow_from_paths`.")
+        lines.append("Naive pathwise-diff returns 0 per path (Dirac in `f'`); BEL constant-flow weight delivers unbiased estimates within 4σ of analytic. The `elworthy` row uses `elworthy_rt::from_paths::bel_delta_constant_flow_from_paths` — an off-the-shelf estimator that produces bitwise-identical output to the hand-rolled row because both compute the same arithmetic on the same paths.")
         lines.append("")
         lines.append("| payoff | impl | Δ estimate | bias vs analytic |")
         lines.append("|---|---|---|---|")
