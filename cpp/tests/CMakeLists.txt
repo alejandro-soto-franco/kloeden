@@ -1,1 +1,3 @@
-# Tests added starting Task 10.
+add_executable(test_gbm_euler_scalar test_gbm_euler_scalar.cpp)
+target_link_libraries(test_gbm_euler_scalar PRIVATE kloeden_strict GTest::gtest GTest::gtest_main)
+add_test(NAME gbm_euler_scalar COMMAND test_gbm_euler_scalar)
