@@ -12,6 +12,7 @@ include(CTest)
 
 set(KLOEDEN_SOURCES
     src/buffer.cpp
+    src/gbm_euler_scalar.cpp
     src/placeholder.cpp
 )
 
