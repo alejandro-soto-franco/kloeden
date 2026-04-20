@@ -9,3 +9,7 @@ add_test(NAME gbm_milstein_scalar COMMAND test_gbm_milstein_scalar)
 add_executable(test_gbm_taylor15_scalar test_gbm_taylor15_scalar.cpp)
 target_link_libraries(test_gbm_taylor15_scalar PRIVATE kloeden_strict GTest::gtest GTest::gtest_main)
 add_test(NAME gbm_taylor15_scalar COMMAND test_gbm_taylor15_scalar)
+
+add_executable(test_gbm_digital_kernels test_gbm_digital_kernels.cpp)
+target_link_libraries(test_gbm_digital_kernels PRIVATE kloeden_strict GTest::gtest GTest::gtest_main)
+add_test(NAME gbm_digital_kernels COMMAND test_gbm_digital_kernels)
