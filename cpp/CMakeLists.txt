@@ -12,6 +12,8 @@ include(CTest)
 
 set(KLOEDEN_SOURCES
     src/buffer.cpp
+    src/gbm_digital_bel_lr.cpp
+    src/gbm_digital_naive_pathwise.cpp
     src/gbm_euler_scalar.cpp
     src/gbm_milstein_scalar.cpp
     src/gbm_taylor15_scalar.cpp
