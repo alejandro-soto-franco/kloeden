@@ -20,3 +20,7 @@ criterion = { workspace = true }
 [[bench]]
 name = "gbm_euler"
 harness = false
+
+[[bench]]
+name = "gbm_milstein"
+harness = false
