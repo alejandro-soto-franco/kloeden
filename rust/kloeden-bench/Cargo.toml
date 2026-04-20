@@ -12,6 +12,11 @@ toml = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 memmap2 = "0.9"
+pathwise-core = "0.2"
 
 [dev-dependencies]
 criterion = { workspace = true }
+
+[[bench]]
+name = "gbm_euler"
+harness = false
