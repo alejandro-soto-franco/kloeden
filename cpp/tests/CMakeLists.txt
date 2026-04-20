@@ -5,3 +5,7 @@ add_test(NAME gbm_euler_scalar COMMAND test_gbm_euler_scalar)
 add_executable(test_gbm_milstein_scalar test_gbm_milstein_scalar.cpp)
 target_link_libraries(test_gbm_milstein_scalar PRIVATE kloeden_strict GTest::gtest GTest::gtest_main)
 add_test(NAME gbm_milstein_scalar COMMAND test_gbm_milstein_scalar)
+
+add_executable(test_gbm_taylor15_scalar test_gbm_taylor15_scalar.cpp)
+target_link_libraries(test_gbm_taylor15_scalar PRIVATE kloeden_strict GTest::gtest GTest::gtest_main)
+add_test(NAME gbm_taylor15_scalar COMMAND test_gbm_taylor15_scalar)
