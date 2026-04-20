@@ -1,0 +1,36 @@
+target/
+build/
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.pdb
+.vscode/
+.idea/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+results/*.csv
+!results/README.md
+fixtures/
+docs/superpowers/
+
+# Rust
+Cargo.lock
+!rust/Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
