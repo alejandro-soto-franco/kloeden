@@ -5,3 +5,11 @@ target_compile_definitions(bench_gbm_euler_scalar_strict PRIVATE KLOEDEN_IMPL_NA
 add_executable(bench_gbm_euler_scalar_fast bench_gbm_euler_scalar.cpp)
 target_link_libraries(bench_gbm_euler_scalar_fast PRIVATE kloeden_fast benchmark::benchmark)
 target_compile_definitions(bench_gbm_euler_scalar_fast PRIVATE KLOEDEN_IMPL_NAME="cpp-fast")
+
+add_executable(bench_gbm_milstein_scalar_strict bench_gbm_milstein_scalar.cpp)
+target_link_libraries(bench_gbm_milstein_scalar_strict PRIVATE kloeden_strict benchmark::benchmark)
+target_compile_definitions(bench_gbm_milstein_scalar_strict PRIVATE KLOEDEN_IMPL_NAME="cpp-strict")
+
+add_executable(bench_gbm_milstein_scalar_fast bench_gbm_milstein_scalar.cpp)
+target_link_libraries(bench_gbm_milstein_scalar_fast PRIVATE kloeden_fast benchmark::benchmark)
+target_compile_definitions(bench_gbm_milstein_scalar_fast PRIVATE KLOEDEN_IMPL_NAME="cpp-fast")
