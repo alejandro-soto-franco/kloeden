@@ -31,3 +31,7 @@ harness = false
 [[bench]]
 name = "gbm_taylor15"
 harness = false
+
+[[bench]]
+name = "gbm_euler_elworthy"
+harness = false
