@@ -8,9 +8,9 @@ Single thread, pinned core, 20-rep median. Larger is better.
 
 | scheme | process | width | payoff | cpp-fast | cpp-strict | elworthy | pathwise |
 |---|---|---|---|---|---|---|---|
-| euler | gbm | scalar | none | 12090.0 M path-steps/s | 381.1 M path-steps/s | 155.4 M path-steps/s | 424.8 M path-steps/s |
-| milstein | gbm | scalar | none | 8626.9 M path-steps/s | 316.4 M path-steps/s | 113.0 M path-steps/s | 294.7 M path-steps/s |
-| taylor15 | gbm | scalar | none | 485.2 M path-steps/s | 154.9 M path-steps/s | not run | 172.9 M path-steps/s |
+| euler | gbm | scalar | none | 12898.0 M path-steps/s | 385.5 M path-steps/s | 140.7 M path-steps/s | 448.0 M path-steps/s |
+| milstein | gbm | scalar | none | 8403.7 M path-steps/s | 303.9 M path-steps/s | 112.7 M path-steps/s | 276.9 M path-steps/s |
+| taylor15 | gbm | scalar | none | 488.7 M path-steps/s | 156.6 M path-steps/s | not run | 176.8 M path-steps/s |
 
 ### Correctness block (Table A)
 

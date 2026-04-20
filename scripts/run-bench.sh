@@ -23,6 +23,7 @@ CPP_TARGETS=(strict fast)
 RUST_BENCHES=(
     pathwise_euler_gbm_scalar pathwise_milstein_gbm_scalar pathwise_taylor15_gbm_scalar
     elworthy_euler_gbm_scalar elworthy_milstein_gbm_scalar
+    gbm_digital_kernels
 )
 
 # 1. Generate fixtures.
@@ -46,6 +47,11 @@ for scheme in "${SCHEMES[@]}"; do
             "${TASKSET[@]}" "$bin" --benchmark_format=console
     done
 done
+
+# 3b. Run digital-kernel correctness bench (one binary emits two CSV rows).
+log "step 3/5: cpp-strict digital kernels"
+KLOEDEN_FIXTURES_DIR="$FIXTURES_DIR" KLOEDEN_RESULTS_DIR="$RESULTS_DIR" \
+    "${TASKSET[@]}" "$BUILD_DIR/bench/bench_gbm_digital_kernels_strict"
 
 # 4. Run Rust benchmarks.
 for bench_name in "${RUST_BENCHES[@]}"; do
