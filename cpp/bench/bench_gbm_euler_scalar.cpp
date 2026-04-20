@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// Google Benchmark driver for gbm_euler_scalar.
+// Times the kernel on the shared buffer and writes one CSV row to
+// results/<impl>_euler_gbm_scalar.csv (path via $KLOEDEN_RESULTS_DIR,
+// default ./results relative to the build dir).
+
+#include <benchmark/benchmark.h>
+
+#include <cmath>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "kloeden/buffer.hpp"
+#include "kloeden/schemes.hpp"
+
+namespace fs = std::filesystem;
+
+namespace {
+
+fs::path fixtures_dir() {
+    if (auto env = std::getenv("KLOEDEN_FIXTURES_DIR")) return fs::path(env);
+    return fs::current_path() / ".." / "fixtures";
+}
+
+fs::path results_dir() {
+    if (auto env = std::getenv("KLOEDEN_RESULTS_DIR")) return fs::path(env);
+    return fs::current_path() / ".." / "results";
+}
+
+#ifndef KLOEDEN_IMPL_NAME
+#define KLOEDEN_IMPL_NAME "cpp-strict"
+#endif
+
+struct BenchContext {
+    std::unique_ptr<kloeden::Fixture> fx;
+    std::vector<double> terminal;
+    kloeden::GBM p{0.05, 0.2};
+
+    BenchContext() {
+        fx = std::make_unique<kloeden::Fixture>(kloeden::load_fixture(fixtures_dir()));
+        terminal.resize(fx->meta().n_paths);
+    }
+};
+
+// Heap-allocated; lives for the duration of main().
+BenchContext* g_ctx = nullptr;
+
+void BM_gbm_euler_scalar(benchmark::State& state) {
+    const auto& m = g_ctx->fx->meta();
+    for (auto _ : state) {
+        kloeden::gbm_euler_scalar(
+            g_ctx->fx->dw().data(), m.x0, m.dt, m.n_paths, m.n_steps, g_ctx->p, g_ctx->terminal.data());
+        benchmark::DoNotOptimize(g_ctx->terminal.data());
+    }
+    state.SetItemsProcessed(state.iterations() * static_cast<int64_t>(m.n_paths * m.n_steps));
+}
+BENCHMARK(BM_gbm_euler_scalar)->Unit(benchmark::kMillisecond)->MinWarmUpTime(0.1)->MinTime(1.0);
+
+void emit_csv() {
+    const auto& m = g_ctx->fx->meta();
+    kloeden::gbm_euler_scalar(
+        g_ctx->fx->dw().data(), m.x0, m.dt, m.n_paths, m.n_steps, g_ctx->p, g_ctx->terminal.data());
+    double sum = 0.0;
+    for (double v : g_ctx->terminal) sum += v;
+    double mean = sum / static_cast<double>(m.n_paths);
+    double sq = 0.0;
+    for (double v : g_ctx->terminal) { double d = v - mean; sq += d*d; }
+    double var = sq / static_cast<double>(m.n_paths - 1);
+    double stderr_mean = std::sqrt(var / static_cast<double>(m.n_paths));
+
+    fs::create_directories(results_dir());
+    auto out = results_dir() / (std::string(KLOEDEN_IMPL_NAME) + "_euler_gbm_scalar.csv");
+    std::ofstream f(out, std::ios::trunc);
+    f << "impl,width,scheme,process,payoff,n_paths,n_steps,ns_per_path_step,paths_per_s,mc_mean,mc_stderr\n";
+    // ns_per_path_step and paths_per_s get filled by collate.py from bench JSON;
+    // for Task 11 we write placeholders of -1 and rely on the bench JSON output.
+    f << KLOEDEN_IMPL_NAME << ",scalar,euler,gbm,none,"
+      << m.n_paths << "," << m.n_steps << ",-1,-1,"
+      << mean << "," << stderr_mean << "\n";
+}
+
+} // namespace
+
+int main(int argc, char** argv) {
+    BenchContext ctx;
+    g_ctx = &ctx;
+
+    benchmark::Initialize(&argc, argv);
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+    benchmark::RunSpecifiedBenchmarks();
+    benchmark::Shutdown();
+
+    emit_csv();
+    return 0;
+}
