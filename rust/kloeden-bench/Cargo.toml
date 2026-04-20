@@ -13,6 +13,9 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 memmap2 = "0.9"
 pathwise-core = "0.2"
+elworthy-rt = "0.1"
+elworthy-expr = "0.1"
+elworthy-codegen = "0.1"
 
 [dev-dependencies]
 criterion = { workspace = true }
