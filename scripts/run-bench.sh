@@ -20,7 +20,10 @@ fi
 
 SCHEMES=(euler milstein taylor15)
 CPP_TARGETS=(strict fast)
-RUST_BENCHES=(pathwise_euler_gbm_scalar pathwise_milstein_gbm_scalar pathwise_taylor15_gbm_scalar)
+RUST_BENCHES=(
+    pathwise_euler_gbm_scalar pathwise_milstein_gbm_scalar pathwise_taylor15_gbm_scalar
+    elworthy_euler_gbm_scalar elworthy_milstein_gbm_scalar
+)
 
 # 1. Generate fixtures.
 log "step 1/5: gen-fixtures"

@@ -6,18 +6,18 @@
 
 Single thread, pinned core, 20-rep median. Larger is better.
 
-| scheme | process | width | payoff | cpp-fast | cpp-strict | pathwise |
-|---|---|---|---|---|---|---|
-| euler | gbm | scalar | none | 9916.2 M path-steps/s | 386.8 M path-steps/s | 441.1 M path-steps/s |
-| milstein | gbm | scalar | none | 8636.9 M path-steps/s | 301.3 M path-steps/s | 313.7 M path-steps/s |
-| taylor15 | gbm | scalar | none | 499.4 M path-steps/s | 159.3 M path-steps/s | 182.5 M path-steps/s |
+| scheme | process | width | payoff | cpp-fast | cpp-strict | elworthy | pathwise |
+|---|---|---|---|---|---|---|---|
+| euler | gbm | scalar | none | 12090.0 M path-steps/s | 381.1 M path-steps/s | 152.4 M path-steps/s | 435.8 M path-steps/s |
+| milstein | gbm | scalar | none | 8626.9 M path-steps/s | 316.4 M path-steps/s | 111.6 M path-steps/s | 300.3 M path-steps/s |
+| taylor15 | gbm | scalar | none | 485.2 M path-steps/s | 154.9 M path-steps/s | not run | 176.0 M path-steps/s |
 
 ## Correctness block
 
 Sample mean and stderr of the terminal value. All impls run on the same Brownian-increment fixture so terminal means must agree within 4 stderrs (enforced by `scripts/verify.py`).
 
-| scheme | process | width | payoff | cpp-fast | cpp-strict | pathwise |
-|---|---|---|---|---|---|---|
-| euler | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | mean=105.3596 ±0.2136 |
-| milstein | gbm | scalar | none | mean=105.3600 ±0.2135 | mean=105.3600 ±0.2135 | mean=105.3595 ±0.2135 |
-| taylor15 | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 |
+| scheme | process | width | payoff | cpp-fast | cpp-strict | elworthy | pathwise |
+|---|---|---|---|---|---|---|---|
+| euler | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | mean=104.7761 ±0.2120 | mean=105.3596 ±0.2136 |
+| milstein | gbm | scalar | none | mean=105.3600 ±0.2135 | mean=105.3600 ±0.2135 | mean=104.7796 ±0.2120 | mean=105.3595 ±0.2135 |
+| taylor15 | gbm | scalar | none | mean=105.3600 ±0.2136 | mean=105.3600 ±0.2136 | not run | mean=105.3600 ±0.2136 |
