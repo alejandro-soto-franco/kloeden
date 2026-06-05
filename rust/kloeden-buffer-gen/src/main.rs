@@ -90,7 +90,7 @@ fn write_buffer(args: &Args) -> io::Result<Meta> {
         let dw = sqrt_dt * z;
         let bytes = dw.to_le_bytes();
         buf.extend_from_slice(&bytes);
-        hasher.update(&bytes);
+        hasher.update(bytes);
     }
 
     fs::write(&bin_path, &buf)?;

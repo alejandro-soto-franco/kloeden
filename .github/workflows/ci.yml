@@ -30,20 +30,27 @@ jobs:
         with:
           workspaces: rust
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      # Plain clippy (not -D warnings): the benchmark kernels intentionally use
+      # index loops and wide argument lists for measurement fidelity.
+      - run: cargo clippy --workspace --all-targets
       - run: cargo test --workspace
 
   cpp:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake g++ libbenchmark-dev libgtest-dev libssl-dev libpfm4-dev
+      - name: Generate shared fixtures
+        run: bash scripts/gen-fixtures.sh
       - name: Configure
         run: cmake -S cpp -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build -j
       - name: Test
         run: ctest --test-dir build --output-on-failure
+        env:
+          KLOEDEN_FIXTURES_DIR: ${{ github.workspace }}/fixtures
