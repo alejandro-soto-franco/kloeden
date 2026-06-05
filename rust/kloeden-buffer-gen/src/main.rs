@@ -47,7 +47,9 @@ fn parse_args() -> Result<Args, String> {
 
     let mut it = env::args().skip(1);
     while let Some(flag) = it.next() {
-        let val = it.next().ok_or_else(|| format!("{flag} requires a value"))?;
+        let val = it
+            .next()
+            .ok_or_else(|| format!("{flag} requires a value"))?;
         match flag.as_str() {
             "--seed" => seed = val.parse().map_err(|e| format!("--seed: {e}"))?,
             "--n-paths" => n_paths = val.parse().map_err(|e| format!("--n-paths: {e}"))?,
@@ -59,7 +61,14 @@ fn parse_args() -> Result<Args, String> {
         }
     }
 
-    Ok(Args { seed, n_paths, n_steps, t, x0, out_dir })
+    Ok(Args {
+        seed,
+        n_paths,
+        n_steps,
+        t,
+        x0,
+        out_dir,
+    })
 }
 
 fn write_buffer(args: &Args) -> io::Result<Meta> {
@@ -125,4 +134,6 @@ fn main() -> ExitCode {
 
 // Silence dead-code warning for unused helper.
 #[allow(dead_code)]
-fn _path_exists(p: &Path) -> bool { p.exists() }
+fn _path_exists(p: &Path) -> bool {
+    p.exists()
+}

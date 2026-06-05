@@ -18,25 +18,27 @@ fn results_dir() -> PathBuf {
         PathBuf::from(e)
     } else {
         let manifest = env!("CARGO_MANIFEST_DIR");
-        PathBuf::from(manifest).parent().unwrap().parent().unwrap().join("results")
+        PathBuf::from(manifest)
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("results")
     }
 }
 
-fn write_csv(
-    impl_name: &str,
-    payoff: &str,
-    n_paths: u64,
-    n_steps: u64,
-    mean: f64,
-    stderr: f64,
-) {
+fn write_csv(impl_name: &str, payoff: &str, n_paths: u64, n_steps: u64, mean: f64, stderr: f64) {
     let out = results_dir();
     fs::create_dir_all(&out).expect("mkdir results");
     let path = out.join(format!("{}_{}_gbm_scalar.csv", impl_name, payoff));
     let mut f = fs::File::create(&path).expect("create csv");
     writeln!(f, "impl,width,scheme,process,payoff,n_paths,n_steps,ns_per_path_step,paths_per_s,mc_mean,mc_stderr").unwrap();
-    writeln!(f, "{},scalar,euler,gbm,{},{},{},-1,-1,{},{}",
-        impl_name, payoff, n_paths, n_steps, mean, stderr).unwrap();
+    writeln!(
+        f,
+        "{},scalar,euler,gbm,{},{},{},-1,-1,{},{}",
+        impl_name, payoff, n_paths, n_steps, mean, stderr
+    )
+    .unwrap();
 }
 
 fn bench(_c: &mut Criterion) {
@@ -88,12 +90,26 @@ fn bench(_c: &mut Criterion) {
     let naive_mean = naive_sum / n;
     let naive_var = (naive_sum_sq / n) - naive_mean * naive_mean;
     let naive_stderr = (naive_var.max(0.0) / n).sqrt();
-    write_csv("pathwise", "digital_naive", m.n_paths, m.n_steps, naive_mean, naive_stderr);
+    write_csv(
+        "pathwise",
+        "digital_naive",
+        m.n_paths,
+        m.n_steps,
+        naive_mean,
+        naive_stderr,
+    );
 
     let bel_mean = bel_sum / n;
     let bel_var = (bel_sum_sq / n) - bel_mean * bel_mean;
     let bel_stderr = (bel_var.max(0.0) / n).sqrt();
-    write_csv("rust-hand-rolled", "digital_bel", m.n_paths, m.n_steps, bel_mean, bel_stderr);
+    write_csv(
+        "rust-hand-rolled",
+        "digital_bel",
+        m.n_paths,
+        m.n_steps,
+        bel_mean,
+        bel_stderr,
+    );
 
     // elworthy-rt 0.1.3 `bel_delta_constant_flow_from_paths`: off-the-shelf
     // BEL estimator for externally-generated paths. `sigma_at_x0` for GBM
@@ -105,11 +121,27 @@ fn bench(_c: &mut Criterion) {
         m.t,
         sigma * m.x0,
     );
-    write_csv("elworthy", "digital_bel", m.n_paths, m.n_steps, pd.delta.mean, pd.delta.stderr);
+    write_csv(
+        "elworthy",
+        "digital_bel",
+        m.n_paths,
+        m.n_steps,
+        pd.delta.mean,
+        pd.delta.stderr,
+    );
 
-    eprintln!("pathwise digital_naive:         mean={} stderr={}", naive_mean, naive_stderr);
-    eprintln!("rust-hand-rolled digital_bel:   mean={} stderr={}", bel_mean, bel_stderr);
-    eprintln!("elworthy digital_bel:           mean={} stderr={}", pd.delta.mean, pd.delta.stderr);
+    eprintln!(
+        "pathwise digital_naive:         mean={} stderr={}",
+        naive_mean, naive_stderr
+    );
+    eprintln!(
+        "rust-hand-rolled digital_bel:   mean={} stderr={}",
+        bel_mean, bel_stderr
+    );
+    eprintln!(
+        "elworthy digital_bel:           mean={} stderr={}",
+        pd.delta.mean, pd.delta.stderr
+    );
 }
 
 criterion_group!(benches, bench);

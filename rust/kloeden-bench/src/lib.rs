@@ -68,7 +68,10 @@ pub fn load(dir: impl AsRef<Path>) -> Result<Fixture, LoadError> {
 
     let expected = (meta.n_paths as usize) * (meta.n_steps as usize) * 8;
     if mmap.len() != expected {
-        return Err(LoadError::SizeMismatch { bin_len: mmap.len(), expected });
+        return Err(LoadError::SizeMismatch {
+            bin_len: mmap.len(),
+            expected,
+        });
     }
 
     let mut hasher = Sha256::new();
@@ -86,7 +89,12 @@ pub fn default_fixtures_dir() -> PathBuf {
     // CARGO_MANIFEST_DIR points to rust/kloeden-bench at build time.
     // Workspace root is two levels up from that.
     let manifest = env!("CARGO_MANIFEST_DIR");
-    PathBuf::from(manifest).parent().unwrap().parent().unwrap().join("fixtures")
+    PathBuf::from(manifest)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("fixtures")
 }
 
 #[cfg(test)]

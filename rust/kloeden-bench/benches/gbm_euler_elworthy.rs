@@ -14,7 +14,12 @@ fn results_dir() -> PathBuf {
         PathBuf::from(e)
     } else {
         let manifest = env!("CARGO_MANIFEST_DIR");
-        PathBuf::from(manifest).parent().unwrap().parent().unwrap().join("results")
+        PathBuf::from(manifest)
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("results")
     }
 }
 
@@ -29,36 +34,69 @@ fn bench(c: &mut Criterion) {
     let mut cache = KernelCache::new();
     // Warm the cache.
     euler_scalar_jit_cached(
-        &mut cache, &mu_expr, &sigma_expr, &payoff_expr, &[],
-        m.x0, m.t, m.n_steps as usize, m.n_paths as usize, m.seed,
-    ).expect("warm");
+        &mut cache,
+        &mu_expr,
+        &sigma_expr,
+        &payoff_expr,
+        &[],
+        m.x0,
+        m.t,
+        m.n_steps as usize,
+        m.n_paths as usize,
+        m.seed,
+    )
+    .expect("warm");
 
     c.bench_function("elworthy_euler_gbm_scalar", |b| {
         b.iter(|| {
             let est = euler_scalar_jit_cached(
                 &mut cache,
-                black_box(&mu_expr), black_box(&sigma_expr), black_box(&payoff_expr),
+                black_box(&mu_expr),
+                black_box(&sigma_expr),
+                black_box(&payoff_expr),
                 black_box(&[]),
-                black_box(m.x0), black_box(m.t),
-                m.n_steps as usize, m.n_paths as usize, m.seed,
-            ).expect("jit");
+                black_box(m.x0),
+                black_box(m.t),
+                m.n_steps as usize,
+                m.n_paths as usize,
+                m.seed,
+            )
+            .expect("jit");
             black_box(est);
         });
     });
 
     let est = euler_scalar_jit_cached(
-        &mut cache, &mu_expr, &sigma_expr, &payoff_expr, &[],
-        m.x0, m.t, m.n_steps as usize, m.n_paths as usize, m.seed,
-    ).expect("jit");
+        &mut cache,
+        &mu_expr,
+        &sigma_expr,
+        &payoff_expr,
+        &[],
+        m.x0,
+        m.t,
+        m.n_steps as usize,
+        m.n_paths as usize,
+        m.seed,
+    )
+    .expect("jit");
 
     let reps = 20usize;
     let mut ns_per_run: Vec<f64> = Vec::with_capacity(reps);
     for _ in 0..reps {
         let t0 = Instant::now();
         let _ = euler_scalar_jit_cached(
-            &mut cache, &mu_expr, &sigma_expr, &payoff_expr, &[],
-            m.x0, m.t, m.n_steps as usize, m.n_paths as usize, m.seed,
-        ).expect("jit");
+            &mut cache,
+            &mu_expr,
+            &sigma_expr,
+            &payoff_expr,
+            &[],
+            m.x0,
+            m.t,
+            m.n_steps as usize,
+            m.n_paths as usize,
+            m.seed,
+        )
+        .expect("jit");
         ns_per_run.push(t0.elapsed().as_nanos() as f64);
     }
     ns_per_run.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -72,8 +110,12 @@ fn bench(c: &mut Criterion) {
     let path = out.join("elworthy_euler_gbm_scalar.csv");
     let mut f = fs::File::create(&path).expect("create csv");
     writeln!(f, "impl,width,scheme,process,payoff,n_paths,n_steps,ns_per_path_step,paths_per_s,mc_mean,mc_stderr").unwrap();
-    writeln!(f, "elworthy,scalar,euler,gbm,none,{},{},{},{},{},{}",
-        m.n_paths, m.n_steps, ns_per_path_step, path_steps_per_s, est.mean, est.stderr).unwrap();
+    writeln!(
+        f,
+        "elworthy,scalar,euler,gbm,none,{},{},{},{},{},{}",
+        m.n_paths, m.n_steps, ns_per_path_step, path_steps_per_s, est.mean, est.stderr
+    )
+    .unwrap();
 }
 
 criterion_group!(benches, bench);

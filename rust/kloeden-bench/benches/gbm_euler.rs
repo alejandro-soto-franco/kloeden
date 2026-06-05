@@ -20,7 +20,12 @@ fn results_dir() -> PathBuf {
         PathBuf::from(e)
     } else {
         let manifest = env!("CARGO_MANIFEST_DIR");
-        PathBuf::from(manifest).parent().unwrap().parent().unwrap().join("results")
+        PathBuf::from(manifest)
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("results")
     }
 }
 
@@ -29,7 +34,16 @@ fn euler_step(x: f64, mu: f64, sigma: f64, dt: f64, dw: f64) -> f64 {
     x + mu * x * dt + sigma * x * dw
 }
 
-fn run_euler(dw: &[f64], x0: f64, dt: f64, n_paths: usize, n_steps: usize, mu: f64, sigma: f64, terminal: &mut [f64]) {
+fn run_euler(
+    dw: &[f64],
+    x0: f64,
+    dt: f64,
+    n_paths: usize,
+    n_steps: usize,
+    mu: f64,
+    sigma: f64,
+    terminal: &mut [f64],
+) {
     for i in 0..n_paths {
         let mut x = x0;
         let row = &dw[i * n_steps..(i + 1) * n_steps];
@@ -63,7 +77,16 @@ fn bench(c: &mut Criterion) {
     });
 
     // Correctness pass: mc_mean and mc_stderr on the fixture.
-    run_euler(fx.dw(), m.x0, m.dt, m.n_paths as usize, m.n_steps as usize, mu, sigma, &mut terminal);
+    run_euler(
+        fx.dw(),
+        m.x0,
+        m.dt,
+        m.n_paths as usize,
+        m.n_steps as usize,
+        mu,
+        sigma,
+        &mut terminal,
+    );
     let n = terminal.len() as f64;
     let mean: f64 = terminal.iter().sum::<f64>() / n;
     let var: f64 = terminal.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (n - 1.0);
@@ -74,7 +97,16 @@ fn bench(c: &mut Criterion) {
     let mut ns_per_run: Vec<f64> = Vec::with_capacity(reps);
     for _ in 0..reps {
         let t0 = Instant::now();
-        run_euler(fx.dw(), m.x0, m.dt, m.n_paths as usize, m.n_steps as usize, mu, sigma, &mut terminal);
+        run_euler(
+            fx.dw(),
+            m.x0,
+            m.dt,
+            m.n_paths as usize,
+            m.n_steps as usize,
+            mu,
+            sigma,
+            &mut terminal,
+        );
         ns_per_run.push(t0.elapsed().as_nanos() as f64);
     }
     ns_per_run.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -88,7 +120,12 @@ fn bench(c: &mut Criterion) {
     let path = out.join("pathwise_euler_gbm_scalar.csv");
     let mut f = fs::File::create(&path).expect("create csv");
     writeln!(f, "impl,width,scheme,process,payoff,n_paths,n_steps,ns_per_path_step,paths_per_s,mc_mean,mc_stderr").unwrap();
-    writeln!(f, "pathwise,scalar,euler,gbm,none,{},{},{},{},{},{}", m.n_paths, m.n_steps, ns_per_path_step, path_steps_per_s, mean, stderr).unwrap();
+    writeln!(
+        f,
+        "pathwise,scalar,euler,gbm,none,{},{},{},{},{},{}",
+        m.n_paths, m.n_steps, ns_per_path_step, path_steps_per_s, mean, stderr
+    )
+    .unwrap();
 }
 
 criterion_group!(benches, bench);
