@@ -24,7 +24,6 @@ _deps
 results/*.csv
 !results/README.md
 fixtures/
-docs/superpowers/
 
 # Rust
 Cargo.lock
